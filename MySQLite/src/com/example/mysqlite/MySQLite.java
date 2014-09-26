@@ -11,15 +11,29 @@ import android.database.sqlite.SQLiteStatement;
 
 public class MySQLite {
 	
-	private static final String DATABASE_NAME = "lixo.db";
-	   private static final int DATABASE_VERSION = 1;
-	   private static final String TABLE_NAME = "teste";
-	   private Context context;
-	   private SQLiteDatabase db;
-	   private SQLiteStatement insertStmt;
-	   private static final String INSERT = "insert into "
-			      + TABLE_NAME + "(name) values (?)";
-	   
+	// Database Name
+    private static final String DATABASE_NAME = "Activities.db";
+	
+	/*TALBES NAMES*/
+	private static final String TABLE_NAME = "MyList";
+	  
+	private static final int DATABASE_VERSION = 1;
+	
+	/*Common Column name*/
+	private static final String name = "name";
+	
+	/*Name time column name*/
+	private static final String time = "time";
+	private static final String date = "date";
+	
+	private Context context;
+	private SQLiteDatabase db;
+	private SQLiteStatement insertStmt;
+	
+	/*INSERT*/
+	private static final String INSERT = "insert into "
+			      + TABLE_NAME + " (" + name + "," + date + "," + time + ") values (?,?,?)";
+	
 
 	   
 	public MySQLite(Context context) {
@@ -30,19 +44,20 @@ public class MySQLite {
 		// TODO Auto-generated constructor stub
 	}
 	
-	 public long insert(String name) {
+	 public long insert(String name,String date, String time) {
 	      this.insertStmt.bindString(1, name);
+	      this.insertStmt.bindString(2, date);
+	      this.insertStmt.bindString(3, time);
 	      return this.insertStmt.executeInsert();
 	 }
 	 public void deleteAll() {
 	      this.db.delete(TABLE_NAME, null, null);
 	   }
 
-	   public List<String> selectAll() {
+	  public List<String> selectAllNames() {
 	      List<String> list = new ArrayList<String>();
-	      Cursor cursor = this.db.query(TABLE_NAME, new String[] { "name" },
-	        null, null, null, null, "name desc");
-	      if (cursor.moveToFirst()) {
+	      Cursor cursor = this.db.rawQuery("SELECT DISTINCT "+ name+" from "+TABLE_NAME, null);
+	      if(cursor.moveToFirst()) {
 	         do {
 	            list.add(cursor.getString(0));
 	         } while (cursor.moveToNext());
@@ -52,7 +67,48 @@ public class MySQLite {
 	      }
 	      return list;
 	  }
-
+	  
+	  public List<String> SelectAllDate(String name){
+		  List<String> list = new ArrayList<String>();
+	      Cursor cursor = this.db.rawQuery("SELECT "+ date+" from "+TABLE_NAME+" where name="+"'"+name+"'", null);
+	      if(cursor.moveToFirst()) {
+	         do {
+	            list.add(cursor.getString(0));
+	         } while (cursor.moveToNext());
+	      }
+	      if (cursor != null && !cursor.isClosed()) {
+	         cursor.close();
+	      }
+	      return list;
+	}
+	  public List<String> SelectAllTime(String name){
+		  List<String> list = new ArrayList<String>();
+	      Cursor cursor = this.db.rawQuery("SELECT "+ time+" from "+TABLE_NAME+" where name="+"'"+name+"'", null);
+	      if(cursor.moveToFirst()) {
+	         do {
+	            list.add(cursor.getString(0));
+	         } while (cursor.moveToNext());
+	      }
+	      if (cursor != null && !cursor.isClosed()) {
+	         cursor.close();
+	      }
+	      return list;
+	}
+	  public List<String> SelectAll(){
+		  int i =0;
+		  List<String> list = new ArrayList<String>();
+	      Cursor cursor = this.db.rawQuery("SELECT name,date,time from "+TABLE_NAME, null);
+	      if(cursor.moveToFirst()) {
+	         do {
+	            list.add(cursor.getString(0)+cursor.getString(1));
+	            i++;
+	         } while (cursor.moveToNext());
+	      }
+	      if (cursor != null && !cursor.isClosed()) {
+	         cursor.close();
+	      }
+	      return list;
+	}
 
 	private static class OpenHelper extends SQLiteOpenHelper {
 
@@ -63,13 +119,13 @@ public class MySQLite {
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			// TODO Auto-generated method stub
-			db.execSQL("CREATE TABLE " + TABLE_NAME + "(id INTEGER PRIMARY KEY, name TEXT)");
+			db.execSQL("CREATE TABLE " + TABLE_NAME + "(id INTEGER PRIMARY KEY,name TEXT, date TEXT, time TEXT)");
 		}
 
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			// TODO Auto-generated method stub
-			
+			db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
 		}
 		
 	}
